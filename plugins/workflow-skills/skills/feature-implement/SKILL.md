@@ -452,9 +452,9 @@ For existing baselines: the service flags any visual diff and posts a PR comment
 
 #### 6a. Mark as completed
 
-Set `status: done` in the feature's proposal.md frontmatter — do NOT rename the folder (per `backlog.feature_lifecycle` in the consuming repo's `.claude/repo-conventions.yaml`; renaming churns inbound links + depends-on). Stage 6b updates the epic README Features-table Status column.
+Lifecycle state is already tracked by this point: `status: done` was written to proposal.md frontmatter in Stage 4b, and the epic README status table was updated in Stage 4c. Do NOT rename the folder (per `backlog.feature_lifecycle` in the consuming repo's `.claude/repo-conventions.yaml`; renaming churns inbound links + depends-on) — there is no default-mode folder action in this step.
 
-Opt-in legacy: if `rename_folder_on_transition: true`, instead run `mv <backlog_root>/<epic>/features/<feature-name> <backlog_root>/<epic>/features/_completed_<feature-name>`.
+Opt-in legacy: if `rename_folder_on_transition: true`, run `mv <backlog_root>/<epic>/features/<feature-name> <backlog_root>/<epic>/features/_completed_<feature-name>`.
 
 #### 6b. Commit
 

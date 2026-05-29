@@ -309,7 +309,7 @@ Output the review in this format:
 
 ### Step 7 — Mark as ready (PASS only)
 
-If the final verdict is **PASS**, set `status: ready` in the feature's proposal.md frontmatter — do NOT rename the folder (per the consuming repo's `.claude/repo-conventions.yaml` → `backlog.feature_lifecycle`; renaming churns every inbound link + depends-on). The epic README Features-table Status column is the other visibility surface. Skip if NEEDS_WORK or FAIL.
+If the final verdict is **PASS**, set `status: ready` in the feature's proposal.md frontmatter — do NOT rename the folder (per the consuming repo's `.claude/repo-conventions.yaml` → `backlog.feature_lifecycle`; renaming churns every inbound link + depends-on). The epic README status table is the other visibility surface. Skip if NEEDS_WORK or FAIL.
 
 Opt-in legacy: if that repo sets `backlog.feature_lifecycle.rename_folder_on_transition: true`, fall back to the old `mv … _ready_<feature-name>` rename.
 

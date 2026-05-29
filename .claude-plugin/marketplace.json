@@ -1,0 +1,13 @@
+{
+  "name": "aj-skills",
+  "owner": {
+    "name": "AJ Maher"
+  },
+  "plugins": [
+    {
+      "name": "workflow-skills",
+      "source": "./plugins/workflow-skills",
+      "description": "Planning and review workflow skills (feature/epic create, review, elaborate, implement; codebase-review; code-review; deslop). Repo-agnostic — parameterized per-repo via .claude/repo-conventions.yaml."
+    }
+  ]
+}

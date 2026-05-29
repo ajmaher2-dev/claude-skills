@@ -1,0 +1,5 @@
+{
+  "name": "workflow-skills",
+  "description": "Planning and review workflow skills, parameterized per-repo via .claude/repo-conventions.yaml.",
+  "version": "0.1.0"
+}

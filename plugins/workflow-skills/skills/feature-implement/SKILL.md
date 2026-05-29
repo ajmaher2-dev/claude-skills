@@ -78,7 +78,7 @@ If a feature exits with `USER_BLOCKED`, stop the entire batch and report which f
 | 3 | <name> | PENDING | 0/10 | — |
 
 ### Completed
-- <feature 1>: renamed to _completed_<feature-name>
+- <feature 1>: marked done (status: done)
 
 ### Blocked
 - <feature 2>: <reason — what decision is needed>
@@ -452,13 +452,9 @@ For existing baselines: the service flags any visual diff and posts a PR comment
 
 #### 6a. Mark as completed
 
-Rename the feature folder in-place by prepending `_completed_` to the folder name:
+Set `status: done` in the feature's proposal.md frontmatter — do NOT rename the folder (per `backlog.feature_lifecycle` in the consuming repo's `.claude/repo-conventions.yaml`; renaming churns inbound links + depends-on). Stage 6b updates the epic README Features-table Status column.
 
-```bash
-mv <backlog_root>/<epic>/features/<feature-name> <backlog_root>/<epic>/features/_completed_<feature-name>
-```
-
-This keeps completed features visible in their original epic while clearly marking them as done.
+Opt-in legacy: if `rename_folder_on_transition: true`, instead run `mv <backlog_root>/<epic>/features/<feature-name> <backlog_root>/<epic>/features/_completed_<feature-name>`.
 
 #### 6b. Commit
 
@@ -504,7 +500,7 @@ Push to the current branch.
 ## Exit Conditions
 
 ### DONE
-All tasks complete, quality gate passed, CI pre-flight passed, docs updated, folder renamed to `_completed_<name>`.
+All tasks complete, quality gate passed, CI pre-flight passed, docs updated, feature marked done (status: done).
 
 ### USER_BLOCKED
 A decision requires human input. Report:

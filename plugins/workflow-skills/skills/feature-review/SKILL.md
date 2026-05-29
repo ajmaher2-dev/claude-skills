@@ -309,13 +309,9 @@ Output the review in this format:
 
 ### Step 7 — Mark as ready (PASS only)
 
-If the final verdict is **PASS**, rename the feature folder by prepending `_ready_` to the folder name:
+If the final verdict is **PASS**, set `status: ready` in the feature's proposal.md frontmatter — do NOT rename the folder (per the consuming repo's `.claude/repo-conventions.yaml` → `backlog.feature_lifecycle`; renaming churns every inbound link + depends-on). The epic README Features-table Status column is the other visibility surface. Skip if NEEDS_WORK or FAIL.
 
-```bash
-mv backlog/<epic>/features/<feature-name> backlog/<epic>/features/_ready_<feature-name>
-```
-
-This makes review-ready features immediately visible in the file tree. Skip this step if the verdict is NEEDS_WORK or FAIL.
+Opt-in legacy: if that repo sets `backlog.feature_lifecycle.rename_folder_on_transition: true`, fall back to the old `mv … _ready_<feature-name>` rename.
 
 ---
 
@@ -402,15 +398,10 @@ Run all checks from Steps 2–5 of the Single Plan Review section against the cu
 
 **If PASS (zero failures):**
   - Increment consecutive_clean_count
-  - If consecutive_clean_count >= 2 → **IMMEDIATELY rename the folder** (see below), then EXIT: CONVERGED
+  - If consecutive_clean_count >= 2 → **IMMEDIATELY mark ready** (see below), then EXIT: CONVERGED
   - Otherwise → go to A (re-review to confirm)
 
-  **Rename on CONVERGED (mandatory):** Before returning, run this bash command:
-  ```bash
-  mv <PATH> <PARENT>/_ready_<folder-name>
-  ```
-  For example: `backlog/tech_debt/auth-rbac-hardening` → `backlog/tech_debt/_ready_auth-rbac-hardening`
-  This is NOT optional. If the rename fails, report the error. Do NOT skip this step.
+  **Mark ready on CONVERGED (mandatory):** set `status: ready` in proposal.md frontmatter; do NOT rename the folder (per `backlog.feature_lifecycle`). This is NOT optional. Opt-in legacy: if `rename_folder_on_transition: true`, instead run `mv <PATH> <PARENT>/_ready_<folder-name>` (e.g. `backlog/tech_debt/auth-rbac-hardening` → `backlog/tech_debt/_ready_auth-rbac-hardening`). If the operation fails, report the error. Do NOT skip this step.
 
 **If NEEDS_WORK or FAIL:**
   - Classify each failing check as AUTO or USER:
@@ -489,7 +480,7 @@ Return a structured result containing:
 1. **Exit status:** CONVERGED | USER_BLOCKED | CAP_REACHED
 2. **Final verdict:** PASS | NEEDS_WORK | FAIL
 3. **Iterations used:** N
-4. **Renamed:** yes/no — if CONVERGED, the old and new path (e.g., `backlog/tech_debt/foo` → `backlog/tech_debt/_ready_foo`). If the rename failed, report the error.
+4. **Marked ready (status: ready):** yes/no — if CONVERGED, confirm `status: ready` was set in proposal.md (or, under opt-in legacy `rename_folder_on_transition: true`, the old → new path). If the operation failed, report the error.
 5. **Iteration log:** For each iteration, a one-line summary of what was fixed
    (or "No fixes — re-review for confirmation" on the second-pass confirmation)
 6. **Remaining items (if USER_BLOCKED or CAP_REACHED):**
@@ -504,7 +495,7 @@ Example return format:
 **Exit status:** CONVERGED
 **Final verdict:** PASS
 **Iterations:** 3
-**Renamed:** yes — `backlog/tech_debt/foo` → `backlog/tech_debt/_ready_foo`
+**Marked ready (status: ready):** yes
 
 **Iteration log:**
 - Iteration 1: Fixed `down_revision` (was placeholder, set to actual hash),
@@ -521,12 +512,12 @@ Example return format:
 
 ---
 
-After the sub-agent completes, record its result (exit status, verdict, iterations, remaining items, whether folder was renamed).
+After the sub-agent completes, record its result (exit status, verdict, iterations, remaining items, whether the feature was marked ready).
 
 Announce progress between plans:
 
 ```
-✓ Plan 1 complete (CONVERGED, 3 iterations, renamed to _ready_<name>) — starting plan 2 of N...
+✓ Plan 1 complete (CONVERGED, 3 iterations, marked ready (status: ready)) — starting plan 2 of N...
 ```
 
 ---
@@ -577,17 +568,17 @@ Group by plan.
 
 ### Ready for implementation
 
-List all plans that CONVERGED and were renamed:
+List all plans that CONVERGED and were marked ready:
 
-#### Renamed
-- `<old-path>` → `<new-path>` (renamed to `_ready_<feature-name>`)
+#### Marked ready (status: ready)
+- `<path>` — `status: ready` set in proposal.md
 
 ---
 
 ### Next steps
 1. Address the "Your input required" items above, then re-run
    `/feature-review` on the affected plans
-2. Plans that CONVERGED have been renamed to `_ready_<feature-name>` and are
+2. Plans that CONVERGED have been marked ready (`status: ready`) and are
    ready for `/feature-implement`
 ```
 

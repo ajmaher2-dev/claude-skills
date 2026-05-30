@@ -261,6 +261,7 @@ Output the review in this format:
 #### ADR-007 — no implementation-time decisions
 - PASS/FAIL: No deferred contract decision — <detail: quote the offending phrase and the file/section, and name the route the author should take>
 - PASS/FAIL: Every named dependency is routed — <detail: name any unrouted dependency>
+- PASS/FAIL: Spike route is backed by a gating task — <detail: name any spike with no task or whose result doesn't gate the dependent work>
 - PASS/FAIL: Blocked when dependency does not exist — <detail: name the missing dependency; note if status should be `blocked`>
 
 ### Holistic Assessment

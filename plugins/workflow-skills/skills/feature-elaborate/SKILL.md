@@ -105,6 +105,12 @@ If Step 3 turned up genuine contradictions between the proposal and the codebase
 
 Do not edit `proposal.md` yourself. The user decides whether the proposal needs an amendment, and if so, runs that amendment as its own change (often via `/feature-review` or a manual edit they then validate).
 
+**ADR-007 routing gaps belong here too.** If a dependency's correct route (per Step 4) is **decouple** (the contract is owned by a sibling that must be added to the proposal's `depends-on`) or **block** (the contract doesn't exist yet, so the proposal should move to `status: blocked`), that is a proposal-level edit you cannot make — surface it as a discrete question in the same form:
+
+> "This feature depends on `<contract>`. It is not settled and shouldn't be deferred to implementation time (ADR-007). The right route looks like (a) **decouple** — add `<sibling-feature>` to `depends-on`; (b) **block** — set `status: blocked` and name `<missing dependency>`; (c) you resolve it now by specifying the contract here. Which?"
+
+Do not stub the contract in design.md, and do not write a deferral ("decide at implementation time", "TBD in code") to paper over the gap while you wait.
+
 Wait for the user's answer before proceeding. The answers feed back into Step 4 / Step 5.
 
 If Step 3 turned up no proposal-level gaps, skip this step and proceed.

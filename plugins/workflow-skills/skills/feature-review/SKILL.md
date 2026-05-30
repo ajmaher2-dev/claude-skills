@@ -126,6 +126,7 @@ Verify the plan follows project conventions:
 **No implementation-time decisions — ADR-007** (a contract decision a feature depends on must be resolved in analysis, not deferred to build time). This is a **FAIL** gate, not a NEEDS_WORK note:
 - [ ] **No deferred contract decision:** scan `proposal.md`, `design.md`, and `tasks.md` for any contract decision — a type, schema, API shape, persistence layout, or test-infra dependency — that is punted to implementation time. **FAIL** the review if any is found. Flag phrasings such as: "decide at implementation time", "TBD in code", "figure out while building", "land a thin version and reconcile later", "we'll sort this out during implementation", "stub for now", or any placeholder/stub standing in for a contract a **sibling feature owns**. The required fix is to **route** the decision (resolve / decouple / spike / block) — **not** to reword the deferral so it reads cleaner. A reworded deferral is still a FAIL.
 - [ ] **Every named dependency is routed:** each dependency the feature names (proposal `depends-on`, design.md Dependencies, any "this relies on X" claim) carries an explicit ADR-007 route — **resolve** (settled concretely here), **decouple** (owned by a named sibling that is in `depends-on`), **spike** (time-boxed investigation task gates the dependent work), or **block** (`status: blocked`, missing dependency named). An unrouted dependency, or a dependency "satisfied" by a stub of a sibling-owned contract, is a FAIL.
+- [ ] **Spike route is backed by a gating task:** if any dependency is routed **spike**, verify the spike actually exists as a task in tasks.md (a concrete, time-boxed investigation — not a vague "look into X") AND that the dependent implementation tasks are sequenced *after* it / gated on its outcome. A "spike" with no corresponding task, or one whose result doesn't gate the dependent work, is a deferral wearing a label — FAIL it. Spike is not a softer synonym for "decide later."
 - [ ] **Blocked when the dependency does not exist yet:** if the contract this feature depends on genuinely does not exist (cannot be resolved, decoupled, or spiked now), the correct outcome is `status: blocked` with the missing dependency named in the proposal — **not** `status: ready` and **not** a stub landed in this feature's PR. A plan that depends on a non-existent contract must never be marked ready. (See Step 7.)
 
 **Test-first** (tests are authored before the implementation that satisfies them):
@@ -323,7 +324,7 @@ If the final verdict is **PASS**, set `status: ready` in the feature's proposal.
 
 **Never mark ready over an ADR-007 violation.** A plan that defers a contract decision to implementation time, or carries a stub for a sibling-owned contract, is a FAIL — it does not reach `status: ready`. The fix is to route the decision (resolve / decouple / spike / block), then re-review.
 
-**Blocked outcome:** if the plan's only remaining obstacle is a contract it depends on that genuinely does not exist yet (cannot be resolved, decoupled, or spiked now), set `status: blocked` in proposal.md frontmatter and ensure the missing dependency is named in the proposal's RAID Dependencies (and `depends-on` if it is a known-but-unbuilt sibling). Do not set `status: ready`. Blocked is the correct, honest terminal state — not something to force past by stubbing the missing contract.
+**Blocked outcome:** if the plan's only remaining obstacle is a contract it depends on that genuinely does not exist yet (cannot be resolved, decoupled, or spiked now), set `status: blocked` in proposal.md frontmatter and ensure the missing dependency is named in the proposal's RAID Dependencies (and `depends-on` if it is a known-but-unbuilt sibling). Do not set `status: ready`. Blocked is the correct, honest terminal state — not something to force past by stubbing the missing contract. **Unblocking:** once the named dependency is built (or its contract is resolved / decoupled / spiked), re-run `/feature-review` on the plan; a clean pass then flips it from `status: blocked` to `status: ready`.
 
 Opt-in legacy: if that repo sets `backlog.feature_lifecycle.rename_folder_on_transition: true`, fall back to the old `mv … _ready_<feature-name>` rename.
 
@@ -333,8 +334,8 @@ Opt-in legacy: if that repo sets `backlog.feature_lifecycle.rename_folder_on_tra
 
 - **PASS:** All checks pass, or only minor informational notes (no action required)
 - **NEEDS_WORK:** Any accuracy check fails (references non-existent files, wrong migration chain) OR any completeness check fails (missing section, placeholder-only content, missing test layer, missing RAID items) OR any alignment check has a clear violation OR holistic assessment flags scope splitting or underspecified areas
-- **FAIL:** Required files are missing (no proposal.md / design.md / tasks.md), plan contradicts established architecture patterns, the proposed design would create fundamental problems (circular dependencies, data integrity issues, security holes), the plan **defers a contract decision to implementation time** or carries a stub standing in for a sibling-owned contract (ADR-007 violation — see Step 4), OR holistic assessment reveals the plan doesn't actually solve the stated problem
-- **BLOCKED (not ready):** The plan is otherwise sound but depends on a contract that genuinely does not exist yet and cannot be resolved, decoupled, or spiked now. Set `status: blocked` with the missing dependency named; do **not** mark ready. This is the correct terminal outcome for a real missing dependency — not a FAIL to be force-fixed by stubbing.
+- **FAIL:** Required files are missing (no proposal.md / design.md / tasks.md), plan contradicts established architecture patterns, the proposed design would create fundamental problems (circular dependencies, data integrity issues, security holes), the plan **defers a contract decision to implementation time** or carries a stub standing in for a sibling-owned contract (ADR-007 violation — see the "No implementation-time decisions" gate in Step 4), OR holistic assessment reveals the plan doesn't actually solve the stated problem
+- **BLOCKED (not ready):** The plan is otherwise sound but depends on a contract that genuinely does not exist yet and cannot be resolved, decoupled, or spiked now. Set `status: blocked` with the missing dependency named; do **not** mark ready. This is the correct terminal outcome for a real missing dependency — not a FAIL to be force-fixed by stubbing. **FAIL takes precedence over BLOCKED:** a plan with any outstanding FAIL item (including an ADR-007 deferral or a sibling-contract stub) is FAIL, not BLOCKED — fix the FAIL first. Only a plan whose *sole* remaining obstacle is the non-existent contract exits as BLOCKED.
 
 ---
 
@@ -472,7 +473,12 @@ Run all checks from Steps 2–5 of the Single Plan Review section against the cu
         `status: blocked` in proposal.md and name the missing dependency in
         RAID Dependencies. This is the ONLY ADR-007 auto-action; never auto-fix
         a deferral by rewording it, and never invent a stub to satisfy a
-        missing contract.
+        missing contract. NOTE: a stub does NOT satisfy "the contract exists" —
+        if the module/type/route exists in name only as a placeholder, empty
+        shell, `NotImplementedError`, or TODO standing in for the real
+        contract, treat the contract as non-existent (and the stub itself as a
+        FAIL per the gate). Existence means a real, usable contract, not a
+        name on disk.
 
     USER — requires human judgment or domain knowledge not in the codebase.
     Examples:

@@ -69,7 +69,8 @@ Write `design.md` using **the same template as `/feature-create` Step 3 (the `de
 - **Testing Strategy** — derive BDD scenarios directly from the proposal's Validation acceptance criteria. Every criterion → at least one Given/When/Then. Then expand to unit / integration / API / migration layers as relevant.
 - **UI Verification section** — include if and only if the proposal's Scope mentions UI. If included, the design intent reference must come from the proposal Scope; do not invent one.
 - **Security, Observability, Maintenance Implications** — fill in based on what the proposal's Proposed Solution actually introduces. If the proposal explicitly defers an area (e.g., out-of-scope multi-tenant runtime selection), state the deferral in Maintenance Implications and link the deferral language back to the proposal Out of Scope item.
-- **Dependencies section** — must match the proposal's frontmatter `depends-on` exactly.
+- **Contract section — ADR-007 note** — the design.md template carries an ADR-007 ("No implementation-time decisions") note. Honour it: no contract decision this feature depends on (a type, schema, API shape, persistence layout, or test-infra dependency) may be left for "implementation time." Route each one to **resolve / decouple / spike / block**, and record the route in the Contract section. Never stub a sibling-owned contract to "reconcile later."
+- **Dependencies section** — must match the proposal's frontmatter `depends-on` exactly, and **each dependency must carry its ADR-007 route** (`[resolve | decouple → <sibling> | spike → <task> | block → <missing dep>]`). If a dependency's contract isn't settled and the right route is **decouple** (add a new `depends-on`) or **block** (`status: blocked`), that is a proposal-level change you cannot make — surface it in Step 7 rather than scaffolding a stub or deferring the decision into the design.
 
 Two hard rules for this step:
 
@@ -94,7 +95,7 @@ If the task count climbs past the repo's `backlog.feature_size.goal_max_tasks` g
 
 ### Step 6 — Self-validate coherence
 
-Before writing the files, run the cross-checks from `/feature-create` Step 6 (Proposal ↔ Tasks, Design ↔ Tasks, RAID ↔ Tasks, Effort ↔ Task count, Maintenance ↔ Tasks, Design scope ↔ Verification, UI scope ↔ UI Verification, Validation ↔ Verification). Any inconsistency means either the design or the tasks need to change before the files land — do NOT modify the proposal to paper over the gap. The proposal is the source of truth; design + tasks must conform to it.
+Before writing the files, run the cross-checks from `/feature-create` Step 6 (Proposal ↔ Tasks, Design ↔ Tasks, RAID ↔ Tasks, Effort ↔ Task count, Maintenance ↔ Tasks, Design scope ↔ Verification, UI scope ↔ UI Verification, Dependencies ↔ ADR-007 routing, Validation ↔ Verification). Any inconsistency means either the design or the tasks need to change before the files land — do NOT modify the proposal to paper over the gap. The proposal is the source of truth; design + tasks must conform to it.
 
 ### Step 7 — Surface proposal-level gaps to the user
 
@@ -136,6 +137,7 @@ Next step: Run /feature-review backlog/<epic>/<feature-name>/ to validate the de
 3. **Never expand scope beyond the proposal.** The proposal says three YAMLs → design ships three YAMLs. Documentation-elsewhere claims of "four" are gaps to surface, not licenses to grow.
 4. **Never contradict resolved questions.** Struck-through Open Questions with rationale are binding decisions; cite them, don't relitigate.
 5. **Never invent file paths.** Every backtick-quoted symbol or path in design.md must be one you read in Step 3 (or one your Step 4 plan sanctions creating). No speculation.
+6. **Never defer a contract decision to implementation time (ADR-007).** Every dependency this feature names must be routed — resolve / decouple / spike / block — in the design's Contract and Dependencies sections. Do not author a stub standing in for a sibling-owned contract, and do not write "decide at implementation time", "TBD in code", "figure out while building", or "land a thin version and reconcile later." When the correct route is decouple (new `depends-on`) or block (`status: blocked`) — both proposal-level edits you can't make — surface it in Step 7; do not paper over it in design.md.
 
 ## Why this skill exists
 

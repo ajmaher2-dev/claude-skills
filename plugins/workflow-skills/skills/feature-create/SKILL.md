@@ -240,6 +240,19 @@ The template below references conventions. **Substitute paths from the conventio
 
 <If this feature touches no cross-component contract boundary, say so explicitly. Reviewers reject implementations without a reviewed contract.>
 
+### Contract decisions — ADR-007 (no implementation-time decisions)
+
+Per ADR-007 ("No implementation-time decisions"), **no contract decision this feature depends on may be deferred to implementation time.** A contract decision is any choice of a type, schema, API shape, persistence layout, or test-infra dependency that another component (or this feature's own tests) will bind to. There is no "decide while building" — every such decision must be routed *here, in analysis,* to exactly one of:
+
+- **Resolve** — settle it now, in this design. State the concrete type / schema / shape / layout. The importing code can be written against it directly.
+- **Decouple** — the decision belongs to a sibling feature that *owns* that contract. Name the sibling and add it to the proposal's `depends-on`. Do **not** stub the sibling's contract here.
+- **Spike** — the decision needs a time-boxed investigation before it can be resolved. Add an explicit spike task and gate the dependent work on its outcome.
+- **Block** — the contract this feature needs does not exist yet and cannot be resolved, decoupled, or spiked now. Mark the proposal `status: blocked` and name the missing dependency. Do not scaffold around the gap.
+
+Never land a thin/stub version of a sibling-owned contract in this feature's PR and "reconcile later" — that is the exact failure ADR-007 forbids. The fix for a deferred decision is always to **route** it (resolve / decouple / spike / block), never to reword the deferral.
+
+For every dependency named in the **Dependencies** section below, record which of the four routes applies. A dependency-driven contract decision must never stay implicit.
+
 ## ADR conformance
 
 <Which platform ADRs (typically in `docs/architecture/NNN-*.md` or this repo's equivalent) bind this feature? Name them and address conformance for each:
@@ -251,9 +264,11 @@ The template below references conventions. **Substitute paths from the conventio
 
 ## Dependencies
 
+For every dependency listed here, append its **ADR-007 route** in brackets so the contract decision it implies is never left implicit: `[resolve | decouple → <sibling feature> | spike → <task> | block → <missing dependency>]`. A dependency whose contract is not yet settled must be decoupled, spiked, or blocked — never carried as an implicit "we'll figure it out in code." (See the Contract section's ADR-007 note.)
+
 - **Language packages:** <any new dependencies to add to pyproject.toml / package.json>
 - **External services:** <any new service dependencies>
-- **Internal dependencies:** <which existing modules/services this depends on>
+- **Internal dependencies:** <which existing modules/services this depends on — each tagged with its ADR-007 route, e.g. `auth.token contract [decouple → auth-rbac-hardening]`>
 
 ## Testing Strategy
 
@@ -443,6 +458,11 @@ When generating the plan content, ensure the guidance below is applied. **Each "
 - If replacing an endpoint, add a task to remove the old route
 - If superseding a service method, plan the migration of all callers before removal
 
+**ADR-007 — no implementation-time decisions (always applies):**
+- For **every** dependency the feature names (proposal `depends-on`, design.md Dependencies, any "this relies on X" claim), route the contract decision it implies to exactly one of **resolve / decouple / spike / block** — do not leave it for "implementation time."
+- Do not scaffold a stub that stands in for a contract a sibling feature owns. If the contract isn't settled, decouple it to that sibling (and add it to `depends-on`), spike it, or mark the proposal `status: blocked` and name the missing dependency.
+- Never emit deferral language — "decide at implementation time", "TBD in code", "figure out while building", "land a thin version and reconcile later" — for a type, schema, API shape, persistence layout, or test-infra dependency. The Contract section's ADR-007 note is the place to record the chosen route; mirror each dependency's route in the Dependencies section.
+
 **API conventions (apply if API exists):**
 - Routes registered in `<backend.api_main>`
 - Request/response schemas (Pydantic for FastAPI, equivalent for other frameworks)
@@ -545,6 +565,11 @@ Before finalising, cross-check the three files against each other and fix any in
 - Frontend file changes → both design.md UI Verification section AND tasks.md UI Verification block must be present and non-placeholder
 - Touched route in safety net → safety-net-removal task paired with granular-spec creation task
 - Granular-spec task covers default state only at first
+
+**Dependencies ↔ ADR-007 routing:**
+- Every dependency named (proposal `depends-on`, design.md Dependencies) carries an explicit ADR-007 route — resolve / decouple / spike / block. No unrouted dependency.
+- No section of any of the three files contains an implementation-time deferral of a contract decision (type, schema, API shape, persistence layout, test-infra dependency). Scan for "decide at implementation time", "TBD in code", "figure out while building", "land a thin version and reconcile later", and any stub standing in for a sibling-owned contract. If found, route the decision — do not reword it.
+- If a contract this feature needs genuinely does not exist yet, set the proposal `status: blocked` and name the dependency, rather than scaffolding around the gap.
 
 **Validation ↔ Verification:**
 - Every acceptance criterion in proposal.md is verifiable — covered by a test or by the acceptance criteria gate
